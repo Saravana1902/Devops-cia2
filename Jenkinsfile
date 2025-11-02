@@ -48,7 +48,12 @@ pipeline {
         }
       }
     }
-
+    
+    stage('Verify GCP Auth') {
+    steps {
+        sh 'gcloud auth list'
+    }
+}
     stage('Deploy to Cloud Run') {
       steps {
         withCredentials([file(credentialsId: "${GCP_SA_CRED_ID}", variable: 'GCP_KEY')]) {
