@@ -35,7 +35,7 @@ pipeline {
 
     stage('Push to Artifact Registry') {
       steps {
-        withCredentials([file(credentialsId: 'gcp-key', variable: 'GCP_KEY')]) {
+        withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GCP_KEY')]) {
           sh '''
             echo "Activating service account..."
             gcloud auth activate-service-account --key-file=$GCP_KEY
