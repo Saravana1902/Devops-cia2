@@ -32,22 +32,17 @@ pipeline {
     }
 
     stage('Push to Artifact Registry') {
-      steps {
-        withCredentials([file(credentialsId: "${GCP_SA_CRED_ID}", variable: 'GCP_KEY')]) {
-          sh '''
-            # Authenticate
-            gcloud auth activate-service-account --key-file=$GCP_KEY
-            gcloud config set project ${PROJECT_ID}
-            # configure docker
-            gcloud auth configure-docker ${REGION}-docker.pkg.dev -q
-
-            # tag & push
-            docker tag ${SERVICE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:${BUILD_TAG}
-            docker push ${IMAGE_NAME}:${BUILD_TAG}
-          '''
+        withCredentials([file(credentialsId: 'gcp-key', variable: 'GCP_KEY')]) {
+            sh '''
+                gcloud auth activate-service-account --key-file=$GCP_KEY
+                gcloud config set project ci-cd-demo-477012
+                gcloud auth configure-docker asia-south1-docker.pkg.dev -q
+                docker tag my-web-app:2 asia-south1-docker.pkg.dev/ci-cd-demo-477012/my-docker-repo/my-web-app:2
+                docker push asia-south1-docker.pkg.dev/ci-cd-demo-477012/my-docker-repo/my-web-app:2
+            '''
         }
-      }
     }
+
     
     stage('Verify GCP Auth') {
     steps {
