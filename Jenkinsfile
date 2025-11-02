@@ -1,5 +1,6 @@
 pipeline {
   agent any
+
   environment {
     PROJECT_ID = 'ci-cd-demo-477012'
     REGION = 'asia-south1'
@@ -11,6 +12,7 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
@@ -32,27 +34,33 @@ pipeline {
     }
 
     stage('Push to Artifact Registry') {
+      steps {
         withCredentials([file(credentialsId: 'gcp-key', variable: 'GCP_KEY')]) {
-            sh '''
-                gcloud auth activate-service-account --key-file=$GCP_KEY
-                gcloud config set project ci-cd-demo-477012
-                gcloud auth configure-docker asia-south1-docker.pkg.dev -q
-                docker tag my-web-app:2 asia-south1-docker.pkg.dev/ci-cd-demo-477012/my-docker-repo/my-web-app:2
-                docker push asia-south1-docker.pkg.dev/ci-cd-demo-477012/my-docker-repo/my-web-app:2
-            '''
+          sh '''
+            echo "Activating service account..."
+            gcloud auth activate-service-account --key-file=$GCP_KEY
+            gcloud config set project ci-cd-demo-477012
+            gcloud auth configure-docker asia-south1-docker.pkg.dev -q
+            
+            echo "Tagging and pushing image..."
+            docker tag my-web-app:${BUILD_TAG} asia-south1-docker.pkg.dev/ci-cd-demo-477012/my-docker-repo/my-web-app:${BUILD_TAG}
+            docker push asia-south1-docker.pkg.dev/ci-cd-demo-477012/my-docker-repo/my-web-app:${BUILD_TAG}
+          '''
         }
+      }
     }
 
-    
     stage('Verify GCP Auth') {
-    steps {
+      steps {
         sh 'gcloud auth list'
+      }
     }
-}
+
     stage('Deploy to Cloud Run') {
       steps {
         withCredentials([file(credentialsId: "${GCP_SA_CRED_ID}", variable: 'GCP_KEY')]) {
           sh '''
+            echo "Deploying to Cloud Run..."
             gcloud auth activate-service-account --key-file=$GCP_KEY
             gcloud config set project ${PROJECT_ID}
             gcloud run deploy ${SERVICE_NAME} \
@@ -69,10 +77,10 @@ pipeline {
 
   post {
     success {
-      echo "SUCCESS: Deployed ${SERVICE_NAME}:${BUILD_TAG} to Cloud Run"
+      echo "✅ SUCCESS: Deployed ${SERVICE_NAME}:${BUILD_TAG} to Cloud Run"
     }
     failure {
-      echo "FAILED"
+      echo "❌ FAILED: Check Jenkins console logs"
     }
   }
 }
