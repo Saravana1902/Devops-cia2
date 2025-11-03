@@ -104,7 +104,7 @@ pipeline {
       echo "✅ SUCCESS: Deployed ${SERVICE_NAME}:${BUILD_TAG} to Cloud Run"
 
       // Send email notification on success
-      mail to: 'youremail@example.com',
+      mail to: '11138.saravanakrishnan@gmail.com',
            subject: "✅ SUCCESS: ${env.JOB_NAME} Build #${env.BUILD_NUMBER}",
            body: """Hello,
 
@@ -128,7 +128,7 @@ Your Jenkins CI/CD Bot
       echo "❌ FAILED: Check Jenkins console logs"
 
       // Send email notification on failure
-      mail to: 'youremail@example.com',
+      mail to: '11138.saravanakrishnan@gmail.com',
            subject: "❌ FAILURE: ${env.JOB_NAME} Build #${env.BUILD_NUMBER}",
            body: """Hello,
 
