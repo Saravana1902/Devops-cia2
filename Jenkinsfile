@@ -85,13 +85,8 @@ pipeline {
             gcloud auth activate-service-account --key-file=$GCP_KEY
             gcloud config set project ${PROJECT_ID}
 
-            # Enable monitoring/logging APIs (only needed once per project)
             gcloud services enable monitoring.googleapis.com logging.googleapis.com
-
-            # List active log sinks for verification
             gcloud logging sinks list
-
-            # Check recent logs for the deployed service
             gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=${SERVICE_NAME}" --limit=5 --format="value(textPayload)"
           '''
         }
@@ -103,46 +98,40 @@ pipeline {
     success {
       echo "✅ SUCCESS: Deployed ${SERVICE_NAME}:${BUILD_TAG} to Cloud Run"
 
-      // Send email notification on success
-      mail to: '11138.saravanakrishnan@gmail.com',
-           subject: "✅ SUCCESS: ${env.JOB_NAME} Build #${env.BUILD_NUMBER}",
-           body: """Hello,
-
-Good news! Your Jenkins pipeline completed successfully.
-
-✅ Deployment Details:
-• Service: ${SERVICE_NAME}
-• Build Tag: ${BUILD_TAG}
-• Project: ${PROJECT_ID}
-• Region: ${REGION}
-
-View the build logs here:
-${env.BUILD_URL}
-
-Regards,
-Your Jenkins CI/CD Bot
-"""
+      emailext(
+        subject: "✅ SUCCESS: ${JOB_NAME} Build #${BUILD_NUMBER}",
+        body: """
+          <h3>✅ Jenkins Deployment Successful</h3>
+          <p><b>Service:</b> ${SERVICE_NAME}</p>
+          <p><b>Build Tag:</b> ${BUILD_TAG}</p>
+          <p><b>Project:</b> ${PROJECT_ID}</p>
+          <p><b>Region:</b> ${REGION}</p>
+          <p>View build logs: <a href='${BUILD_URL}'>${BUILD_URL}</a></p>
+          <br>
+          <p>-- Jenkins CI/CD Bot 🤖</p>
+        """,
+        mimeType: 'text/html',
+        to: '11138.saravanakrishnan@gmail.com'
+      )
     }
 
     failure {
       echo "❌ FAILED: Check Jenkins console logs"
 
-      // Send email notification on failure
-      mail to: '11138.saravanakrishnan@gmail.com',
-           subject: "❌ FAILURE: ${env.JOB_NAME} Build #${env.BUILD_NUMBER}",
-           body: """Hello,
-
-Unfortunately, the Jenkins pipeline failed during deployment.
-
-❗ Service: ${SERVICE_NAME}
-❗ Build Tag: ${BUILD_TAG}
-❗ Project: ${PROJECT_ID}
-
-Check the Jenkins logs for details:
-${env.BUILD_URL}
-
--- Jenkins CI/CD Bot
-"""
+      emailext(
+        subject: "❌ FAILURE: ${JOB_NAME} Build #${BUILD_NUMBER}",
+        body: """
+          <h3>❌ Jenkins Deployment Failed</h3>
+          <p><b>Service:</b> ${SERVICE_NAME}</p>
+          <p><b>Build Tag:</b> ${BUILD_TAG}</p>
+          <p><b>Project:</b> ${PROJECT_ID}</p>
+          <p>Check logs for details: <a href='${BUILD_URL}'>${BUILD_URL}</a></p>
+          <br>
+          <p>-- Jenkins CI/CD Bot ⚠️</p>
+        """,
+        mimeType: 'text/html',
+        to: '11138.saravanakrishnan@gmail.com'
+      )
     }
   }
 }
