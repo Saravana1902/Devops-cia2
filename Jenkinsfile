@@ -96,42 +96,85 @@ pipeline {
 
   post {
     success {
-      echo "✅ SUCCESS: Deployed ${SERVICE_NAME}:${BUILD_TAG} to Cloud Run"
+      script {
+        def startTime = new Date(currentBuild.startTimeInMillis).format("yyyy-MM-dd HH:mm:ss")
+        def endTime = new Date().format("yyyy-MM-dd HH:mm:ss")
+        def duration = currentBuild.durationString.replace(' and counting', '')
+        
+        echo "✅ SUCCESS: Deployed ${SERVICE_NAME}:${BUILD_TAG} to Cloud Run"
 
-      emailext(
-        subject: "✅ SUCCESS: ${JOB_NAME} Build #${BUILD_NUMBER}",
-        body: """
-          <h3>✅ Jenkins Deployment Successful</h3>
-          <p><b>Service:</b> ${SERVICE_NAME}</p>
-          <p><b>Build Tag:</b> ${BUILD_TAG}</p>
-          <p><b>Project:</b> ${PROJECT_ID}</p>
-          <p><b>Region:</b> ${REGION}</p>
-          <p>View build logs: <a href='${BUILD_URL}'>${BUILD_URL}</a></p>
-          <br>
-          <p>-- Jenkins CI/CD Bot 🤖</p>
-        """,
-        mimeType: 'text/html',
-        to: '11138.saravanakrishnan@gmail.com'
-      )
+        emailext(
+          subject: "✅ SUCCESS: ${JOB_NAME} - Build #${BUILD_NUMBER}",
+          body: """
+            <html>
+            <body style="font-family:Arial, sans-serif;">
+              <h2 style="color:green;">✅ Build Success!</h2>
+              <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse; width:85%;">
+                <tr><th align="left">Pipeline:</th><td>${JOB_NAME}</td></tr>
+                <tr><th align="left">Build Number:</th><td>${BUILD_NUMBER}</td></tr>
+                <tr><th align="left">Status:</th><td style="color:green;"><b>SUCCESS</b></td></tr>
+                <tr><th align="left">Start Time:</th><td>${startTime}</td></tr>
+                <tr><th align="left">End Time:</th><td>${endTime}</td></tr>
+                <tr><th align="left">Duration:</th><td>${duration}</td></tr>
+                <tr><th align="left">Git Commit:</th><td>${GIT_COMMIT}</td></tr>
+                <tr><th align="left">Commit Message:</th><td>${GIT_COMMIT_MESSAGE}</td></tr>
+                <tr><th align="left">Image Tag:</th><td>${BUILD_TAG}</td></tr>
+                <tr><th align="left">Deployment URL:</th>
+                  <td><a href="https://my-web-app-71806262503.asia-south1.run.app" target="_blank">
+                  https://my-web-app-71806262503.asia-south1.run.app</a></td>
+                </tr>
+              </table>
+              <br>
+              <p><b>Console Output:</b> <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
+              <p><b>Jenkins Build:</b> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+              <br>
+              <p style="color:gray;">-- Jenkins CI/CD Bot 🤖</p>
+            </body>
+            </html>
+          """,
+          mimeType: 'text/html',
+          to: '11138.saravanakrishnan@gmail.com'
+        )
+      }
     }
 
     failure {
-      echo "❌ FAILED: Check Jenkins console logs"
+      script {
+        def startTime = new Date(currentBuild.startTimeInMillis).format("yyyy-MM-dd HH:mm:ss")
+        def endTime = new Date().format("yyyy-MM-dd HH:mm:ss")
+        def duration = currentBuild.durationString.replace(' and counting', '')
 
-      emailext(
-        subject: "❌ FAILURE: ${JOB_NAME} Build #${BUILD_NUMBER}",
-        body: """
-          <h3>❌ Jenkins Deployment Failed</h3>
-          <p><b>Service:</b> ${SERVICE_NAME}</p>
-          <p><b>Build Tag:</b> ${BUILD_TAG}</p>
-          <p><b>Project:</b> ${PROJECT_ID}</p>
-          <p>Check logs for details: <a href='${BUILD_URL}'>${BUILD_URL}</a></p>
-          <br>
-          <p>-- Jenkins CI/CD Bot ⚠️</p>
-        """,
-        mimeType: 'text/html',
-        to: '11138.saravanakrishnan@gmail.com'
-      )
+        echo "❌ FAILED: Check Jenkins console logs"
+
+        emailext(
+          subject: "❌ FAILURE: ${JOB_NAME} - Build #${BUILD_NUMBER}",
+          body: """
+            <html>
+            <body style="font-family:Arial, sans-serif;">
+              <h2 style="color:red;">❌ Build Failed</h2>
+              <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse; width:85%;">
+                <tr><th align="left">Pipeline:</th><td>${JOB_NAME}</td></tr>
+                <tr><th align="left">Build Number:</th><td>${BUILD_NUMBER}</td></tr>
+                <tr><th align="left">Status:</th><td style="color:red;"><b>FAILED</b></td></tr>
+                <tr><th align="left">Start Time:</th><td>${startTime}</td></tr>
+                <tr><th align="left">End Time:</th><td>${endTime}</td></tr>
+                <tr><th align="left">Duration:</th><td>${duration}</td></tr>
+                <tr><th align="left">Image Tag:</th><td>${BUILD_TAG}</td></tr>
+                <tr><th align="left">Project:</th><td>${PROJECT_ID}</td></tr>
+                <tr><th align="left">Region:</th><td>${REGION}</td></tr>
+              </table>
+              <br>
+              <p><b>Check Logs:</b> <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
+              <p><b>Jenkins Build:</b> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+              <br>
+              <p style="color:gray;">-- Jenkins CI/CD Bot ⚠️</p>
+            </body>
+            </html>
+          """,
+          mimeType: 'text/html',
+          to: '11138.saravanakrishnan@gmail.com'
+        )
+      }
     }
   }
 }
